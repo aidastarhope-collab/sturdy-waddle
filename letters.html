@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<title>💌 Briefe</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:#05353d; color:#fff;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;
+  }
+  header{max-width:1100px;margin:20px auto 10px;padding:0 16px}
+  h1{margin:0 0 8px}
+  .meta{opacity:.85;margin:0 0 6px}
+  .actions{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{padding:8px 12px;border:0;border-radius:10px;font-weight:600;cursor:pointer}
+  .btn.primary{background:#0a5c6d;color:#fff}
+  .btn.primary:hover{background:#0d768b}
+  .btn.light{background:#f3f4f6;color:#111}
+
+  /* Grid mit Scroll — Seite wächst normal nach unten */
+  .grid{
+    max-width:1100px; margin:16px auto 40px; padding:0 16px;
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+    gap:16px 16px;
+  }
+  .card{
+    background:#fef3c7; color:#111; border:2px solid #f59e0b; border-radius:12px;
+    padding:14px; display:flex; flex-direction:column; gap:10px; min-height:140px;
+    opacity:1; transition:opacity .2s ease;
+  }
+  .card.locked{opacity:.35; pointer-events:none; filter:saturate(.4)}
+  .card h3{margin:0; font-size:16px}
+  .card .content{display:none; font-size:14px; line-height:1.35}
+  .card.unlocked .content{display:block}
+  .card .toggle{padding:8px 10px;border:0;border-radius:8px;background:#fbbf24;font-weight:700;cursor:pointer}
+  .card.unlocked .toggle{background:#fcd34d}
+  a.link{color:#fff;text-decoration:none}
+  a.link:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📜 Briefe für dich</h1>
+  <div class="meta" id="meta">–</div>
+  <div class="actions">
+    <a href="game-banana.html" class="btn primary link">⬅️ Zurück zum Spiel</a>
+    <button id="reset" class="btn light">Score zurücksetzen</button>
+  </div>
+</header>
+
+<section class="grid" id="grid"></section>
+
+<script>
+(() => {
+  // ============ Einstellungen ============
+  const TOTAL = 20; // <<<<< für Tests. Auf 50 ändern, wenn du willst.
+  const MESSAGES = Array.from({length: TOTAL}, (_, i) =>
+    `Brief #${i+1}: Hier steht deine persönliche Botschaft ❤️`
+  );
+  // Du kannst MESSAGES auch manuell füllen (z.B. mit echten Texten).
+
+  // Score lesen (session-basiert)
+  const unlockedCount = parseInt(sessionStorage.getItem('bananaScore') || '0', 10);
+  const grid = document.getElementById('grid');
+  const meta = document.getElementById('meta');
+
+  meta.textContent = `Freigeschaltet: ${Math.min(unlockedCount, MESSAGES.length)} / ${MESSAGES.length}`;
+
+  // Karten bauen
+  MESSAGES.forEach((msg, idx) => {
+    const card = document.createElement('div');
+    card.className = 'card' + (idx < unlockedCount ? '' : ' locked');
+
+    const title = document.createElement('h3');
+    title.textContent = `Brief ${idx+1}`;
+
+    const content = document.createElement('div');
+    content.className = 'content';
+    content.textContent = msg;
+
+    const btn = document.createElement('button');
+    btn.className = 'toggle';
+    btn.textContent = (idx < unlockedCount) ? 'Öffnen / Schließen' : 'Gesperrt';
+
+    if (idx < unlockedCount) {
+      // freigeschaltete Karte ist klickbar
+      btn.addEventListener('click', () => {
+        // einfachen Toggle ohne Animation
+        const isOpen = card.classList.toggle('unlocked');
+        // optional Buttontext anpassen
+        btn.textContent = isOpen ? 'Schließen' : 'Öffnen';
+      });
+    }
+
+    card.appendChild(title);
+    card.appendChild(content);
+    card.appendChild(btn);
+    grid.appendChild(card);
+  });
+
+  // Score zurücksetzen (nur Komfort)
+  document.getElementById('reset').addEventListener('click', ()=>{
+    sessionStorage.removeItem('bananaScore');
+    location.reload();
+  });
+})();
+</script>
+</body>
+</html>
