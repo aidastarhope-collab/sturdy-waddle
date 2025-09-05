@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<title>🍌 Banana Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;text-align:center;background:#fff7ed;color:#111}
+  h1{margin:20px 0}
+  .hud{display:flex;gap:16px;justify-content:center;margin:8px 0 0;font-weight:600}
+  canvas{background:#fde68a;border:2px solid #f59e0b;margin:16px auto;display:block;max-width:90vw}
+  #nextBtn{display:none;margin:8px auto 16px;padding:10px 16px;font-weight:700;border:0;border-radius:10px;background:#fbbf24;cursor:pointer}
+  #nextBtn:hover{background:#fcd34d}
+  a{color:#111;text-decoration:none}
+</style>
+</head>
+<body>
+  <h1>🍌 Banana Cat fängt Herzen</h1>
+  <div class="hud">
+    <div>Score: <span id="scoreEl">0</span></div>
+    <div>Zeit: <span id="timeEl">25</span>s</div>
+  </div>
+
+  <canvas id="game" width="400" height="400"></canvas>
+
+  <button id="nextBtn" onclick="window.location.href='letters.html'">➡️ Weiter zu den Briefen</button>
+  <p><a href="letters.html">Direkt zu den Briefen</a> (nutzt aktuellen Session-Score)</p>
+
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('scoreEl');
+  const timeEl = document.getElementById('timeEl');
+  const nextBtn = document.getElementById('nextBtn');
+
+  // Spieler
+  const player = { x: 180, y: 360, w: 40, h: 20, speed: 20 };
+  // Herzen
+  let hearts = [];
+  let score = 0;
+  let timeLeft = 25; // <<<<<< 25 Sekunden (Phase 1 Wunsch)
+  let gameOver = false;
+
+  function spawnHeart(){
+    if(gameOver) return;
+    hearts.push({ x: Math.random()*360, y: -10, vy: 1.6 + Math.random()*1.4 });
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,400,400);
+
+    // Spieler (Banana Cat als gelbes Rechteck)
+    ctx.fillStyle = 'yellow';
+    ctx.fillRect(player.x, player.y, player.w, player.h);
+
+    // Herzen (Emoji Text)
+    ctx.font = '18px Arial';
+    ctx.fillStyle = 'red';
+    hearts.forEach(h => ctx.fillText('❤️', h.x, h.y));
+
+    // HUD im Canvas (redundant)
+    ctx.fillStyle = '#111';
+    ctx.font = '14px Arial';
+    ctx.fillText('Score: ' + score, 10, 20);
+    ctx.fillText('Zeit: ' + timeLeft + 's', 330, 20);
+
+    if(gameOver){
+      ctx.fillStyle = '#111';
+      ctx.font = '22px Arial';
+      ctx.fillText('⏳ Zeit abgelaufen!', 105, 200);
+      ctx.fillText('Endscore: ' + score, 135, 230);
+    }
+  }
+
+  function update(){
+    if(gameOver) return;
+    hearts.forEach(h => h.y += h.vy);
+    // Kollisionen + Filter
+    hearts = hearts.filter(h => {
+      if(h.y > 420) return false; // unten raus
+      const withinX = h.x > player.x && h.x < player.x + player.w;
+      const withinY = h.y > player.y && h.y < player.y + player.h + 10;
+      if(withinX && withinY){ score++; scoreEl.textContent = score; return false; }
+      return true;
+    });
+  }
+
+  function loop(){
+    update(); draw();
+    requestAnimationFrame(loop);
+  }
+
+  // Steuerung
+  document.addEventListener('keydown', e=>{
+    if(gameOver) return;
+    if(e.key === 'ArrowLeft')  player.x = Math.max(0, player.x - player.speed);
+    if(e.key === 'ArrowRight') player.x = Math.min(360, player.x + player.speed);
+  });
+
+  // Timer runterzählen
+  const timer = setInterval(()=>{
+    if(timeLeft > 0){
+      timeLeft--; timeEl.textContent = timeLeft;
+    } else {
+      clearInterval(timer);
+      gameOver = true;
+      // Score für diese Session speichern
+      sessionStorage.setItem('bananaScore', String(score));
+      nextBtn.style.display = 'inline-block';
+    }
+  }, 1000);
+
+  // Spawns
+  const spawner = setInterval(spawnHeart, 800);
+
+  // Sicherheits-Stopp bei Game Over
+  const stopCheck = setInterval(()=>{
+    if(gameOver){ clearInterval(spawner); clearInterval(stopCheck); }
+  }, 300);
+
+  loop();
+})();
+</script>
+</body>
+</html>
