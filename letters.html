@@ -42,16 +42,15 @@
   }
   .card.locked{opacity:.35; pointer-events:none; filter:saturate(.45)}
 
-  /* Umschlagbox: Nachricht kommt DA raus */
+  /* Umschlag-Box */
   .envelope{
     position:relative;
     background:var(--body);
     border-radius:10px;
     height:160px;
-    overflow:hidden;               /* wichtig: Note startet "drin" */
+    overflow:hidden;               /* Note bleibt drin bis geöffnet */
     box-shadow:inset 0 0 0 2px rgba(0,0,0,.05);
   }
-  /* optische Klappe */
   .envelope::before{
     content:"";
     position:absolute; left:50%; top:0; transform:translateX(-50%);
@@ -62,7 +61,7 @@
     z-index:2;
   }
 
-  /* Herz-Siegel (mit kleinem Pulse bei Öffnen) */
+  /* Herz-Siegel */
   .seal{
     position:absolute; left:50%; top:56%;
     width:28px; height:28px; transform:translate(-50%,-50%) rotate(45deg);
@@ -77,24 +76,20 @@
   .seal::after{  top:0; left:-14px; }
   .card.open .seal{ transform:translate(-50%,-50%) rotate(45deg) scale(1.08); }
 
-  /* DIE Nachricht (Note) im Umschlag – fährt raus */
+  /* Note (Nachricht) im Umschlag */
   .note{
-    position:absolute; left:50%; bottom:8px;
-    width:78%; max-height:120%;  /* genügend Raum beim Herausfahren */
-    transform:translate(-50%, 90%);  /* Start: tief im Umschlag */
+    position:absolute; left:50%; bottom:0;
+    width:78%; max-height:120%;
+    transform:translate(-50%, 130%);  /* Start: unsichtbar im Umschlag */
     background:var(--paper); color:var(--text);
     border-radius:10px; padding:12px;
     box-shadow:0 6px 16px rgba(0,0,0,.25), 0 0 0 1px rgba(0,0,0,.06) inset;
     z-index:1;
-    transition:transform .45s ease; /* Smooth raus/rein */
+    transition:transform .45s ease;
     display:flex; align-items:flex-start; justify-content:flex-start;
   }
   .note p{margin:0; font-size:14px; line-height:1.45}
-
-  /* Beim Öffnen kommt die Note heraus */
-  .card.open .note{
-    transform:translate(-50%, -15%); /* sichtbar außerhalb */
-  }
+  .card.open .note{ transform:translate(-50%, -15%); }
 
   .row{
     display:flex; gap:8px; align-items:center; justify-content:space-between;
@@ -132,15 +127,12 @@
 
 <script>
 (() => {
-  // ===== Einstellungen =====
-  const TOTAL = 20; // ← später gern 50
+  const TOTAL = 20; // zum Testen, später einfach auf 50 hoch
   const MESSAGES = Array.from({length: TOTAL}, (_, i) =>
     `Brief #${i+1}: Hier steht deine persönliche Botschaft ❤️`
   );
 
-  // Score aus der Session
   const unlockedCount = parseInt(sessionStorage.getItem('bananaScore') || '0', 10);
-
   const grid = document.getElementById('grid');
   const meta = document.getElementById('meta');
   meta.textContent = `Freigeschaltet: ${Math.min(unlockedCount, MESSAGES.length)} / ${MESSAGES.length}`;
@@ -149,7 +141,6 @@
     const card = document.createElement('div');
     card.className = 'card' + (idx < unlockedCount ? '' : ' locked');
 
-    // Umschlag: Note liegt DARIN und fährt heraus
     const envelope = document.createElement('div');
     envelope.className = 'envelope';
 
@@ -165,7 +156,6 @@
     envelope.appendChild(note);
     envelope.appendChild(seal);
 
-    // Zeile mit Button
     const row = document.createElement('div');
     row.className = 'row';
     const title = document.createElement('h3');
@@ -193,7 +183,6 @@
     grid.appendChild(card);
   });
 
-  // Score zurücksetzen (nur Komfort)
   document.getElementById('reset').addEventListener('click', ()=>{
     sessionStorage.removeItem('bananaScore');
     location.reload();
