@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8" />
-<title>💌 Briefe (Note kommt aus dem Umschlag)</title>
+<title>💌 Briefe – Note & Klappe animiert</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   :root{
@@ -42,26 +42,30 @@
   }
   .card.locked{opacity:.35; pointer-events:none; filter:saturate(.45)}
 
-  /* Umschlag-Box */
+  /* Umschlag-Box – hier passiert die Action */
   .envelope{
     position:relative;
     background:var(--body);
     border-radius:10px;
     height:160px;
-    overflow:hidden;               /* Note bleibt drin bis geöffnet */
+    overflow:hidden;                 /* Note bleibt drin bis geöffnet */
     box-shadow:inset 0 0 0 2px rgba(0,0,0,.05);
+    perspective:800px;               /* sanfte 3D für die Klappe */
   }
-  .envelope::before{
-    content:"";
-    position:absolute; left:50%; top:0; transform:translateX(-50%);
-    width:0; height:0;
-    border-left:130px solid transparent;
-    border-right:130px solid transparent;
-    border-top:70px solid var(--flap);
+
+  /* Klappe: eigenes Element mit clip-path (robust) */
+  .flap{
+    position:absolute; left:0; right:0; top:0; height:72px;
+    background:var(--flap);
+    clip-path:polygon(50% 0%, 100% 100%, 0% 100%);
+    transform-origin:50% 0;          /* oben-mittig als Scharnier */
+    transform:rotateX(0deg);
+    transition:transform .45s ease;   /* Step 1: zuerst */
+    backface-visibility:hidden;
     z-index:2;
   }
 
-  /* Herz-Siegel */
+  /* Herz-Siegel (leichtes Pulse beim Öffnen) */
   .seal{
     position:absolute; left:50%; top:56%;
     width:28px; height:28px; transform:translate(-50%,-50%) rotate(45deg);
@@ -76,20 +80,26 @@
   .seal::after{  top:0; left:-14px; }
   .card.open .seal{ transform:translate(-50%,-50%) rotate(45deg) scale(1.08); }
 
-  /* Note (Nachricht) im Umschlag */
+  /* Note (Nachricht) – fährt aus dem Umschlag heraus */
   .note{
     position:absolute; left:50%; bottom:0;
     width:78%; max-height:120%;
-    transform:translate(-50%, 130%);  /* Start: unsichtbar im Umschlag */
+    transform:translate(-50%, 130%); /* Start: tief im Umschlag, unsichtbar */
     background:var(--paper); color:var(--text);
     border-radius:10px; padding:12px;
     box-shadow:0 6px 16px rgba(0,0,0,.25), 0 0 0 1px rgba(0,0,0,.06) inset;
-    z-index:1;
-    transition:transform .45s ease;
+    z-index:1;                        /* unter Klappe/Siegel */
+    transition:transform .45s ease;   /* Step 2: kurz nach der Klappe */
     display:flex; align-items:flex-start; justify-content:flex-start;
   }
   .note p{margin:0; font-size:14px; line-height:1.45}
-  .card.open .note{ transform:translate(-50%, -15%); }
+
+  /* Öffnen: 1) Klappe klappt, 2) Note fährt raus (mit kleinem Delay) */
+  .card.open .flap{ transform:rotateX(155deg); } /* klappt „nach hinten“ */
+  .card.open .note{
+    transform:translate(-50%, -15%);
+    transition-delay:.12s;            /* erst NACH der Klappe losfahren */
+  }
 
   .row{
     display:flex; gap:8px; align-items:center; justify-content:space-between;
@@ -127,12 +137,15 @@
 
 <script>
 (() => {
-  const TOTAL = 20; // zum Testen, später einfach auf 50 hoch
+  // ===== Einstellungen =====
+  const TOTAL = 20; // ← später gern 50
   const MESSAGES = Array.from({length: TOTAL}, (_, i) =>
     `Brief #${i+1}: Hier steht deine persönliche Botschaft ❤️`
   );
 
+  // Score aus der Session
   const unlockedCount = parseInt(sessionStorage.getItem('bananaScore') || '0', 10);
+
   const grid = document.getElementById('grid');
   const meta = document.getElementById('meta');
   meta.textContent = `Freigeschaltet: ${Math.min(unlockedCount, MESSAGES.length)} / ${MESSAGES.length}`;
@@ -141,8 +154,12 @@
     const card = document.createElement('div');
     card.className = 'card' + (idx < unlockedCount ? '' : ' locked');
 
+    // Umschlag: enthält Flap (oben), Note (drin) und Siegel (oben)
     const envelope = document.createElement('div');
     envelope.className = 'envelope';
+
+    const flap = document.createElement('div');
+    flap.className = 'flap';
 
     const note = document.createElement('div');
     note.className = 'note';
@@ -153,9 +170,11 @@
     const seal = document.createElement('div');
     seal.className = 'seal';
 
+    envelope.appendChild(flap);
     envelope.appendChild(note);
     envelope.appendChild(seal);
 
+    // Zeile mit Button
     const row = document.createElement('div');
     row.className = 'row';
     const title = document.createElement('h3');
@@ -183,6 +202,7 @@
     grid.appendChild(card);
   });
 
+  // Score zurücksetzen (nur Komfort)
   document.getElementById('reset').addEventListener('click', ()=>{
     sessionStorage.removeItem('bananaScore');
     location.reload();
