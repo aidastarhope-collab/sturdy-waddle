@@ -2,42 +2,103 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8" />
-<title>💌 Briefe</title>
+<title>💌 Briefe (Phase 2 – stabile Umschläge)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
-  *{box-sizing:border-box}
-  body{
-    margin:0; background:#05353d; color:#fff;
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif;
+  :root{
+    --bg:#05353d; --paper:#fff; --text:#374151;
+    --wrap:#f5edd1; --flap:#ecdeb8; --body:#e6cfa7;
+    --accent:#f59e0b; --btn:#fbbf24; --btn-hover:#fcd34d;
   }
-  header{max-width:1100px;margin:20px auto 10px;padding:0 16px}
-  h1{margin:0 0 8px}
-  .meta{opacity:.85;margin:0 0 6px}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif}
+  header{max-width:1100px;margin:24px auto 8px;padding:0 16px}
+  h1{margin:0 0 10px}
+  .meta{opacity:.9;margin:0 0 10px}
   .actions{display:flex;gap:8px;flex-wrap:wrap}
-  .btn{padding:8px 12px;border:0;border-radius:10px;font-weight:600;cursor:pointer}
+  .btn{padding:10px 14px;border:0;border-radius:10px;font-weight:700;cursor:pointer}
   .btn.primary{background:#0a5c6d;color:#fff}
   .btn.primary:hover{background:#0d768b}
   .btn.light{background:#f3f4f6;color:#111}
 
-  /* Grid mit Scroll — Seite wächst normal nach unten */
+  /* Grid: entspanntes Scrollen, max. 3–4 pro Zeile je nach Breite */
   .grid{
-    max-width:1100px; margin:16px auto 40px; padding:0 16px;
-    display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
-    gap:16px 16px;
+    max-width:1100px; margin:18px auto 48px; padding:0 16px;
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+    gap:18px;
   }
+
+  /* ===== Umschlag-Karte (stabil, kein 3D) ===== */
   .card{
-    background:#fef3c7; color:#111; border:2px solid #f59e0b; border-radius:12px;
-    padding:14px; display:flex; flex-direction:column; gap:10px; min-height:140px;
-    opacity:1; transition:opacity .2s ease;
+    background:var(--wrap);
+    border:2px solid var(--accent);
+    border-radius:14px;
+    padding:12px;
+    color:#111;
+    display:flex; flex-direction:column;
+    gap:12px;
+    transition:opacity .2s ease;
   }
-  .card.locked{opacity:.35; pointer-events:none; filter:saturate(.4)}
-  .card h3{margin:0; font-size:16px}
-  .card .content{display:none; font-size:14px; line-height:1.35}
-  .card.unlocked .content{display:block}
-  .card .toggle{padding:8px 10px;border:0;border-radius:8px;background:#fbbf24;font-weight:700;cursor:pointer}
-  .card.unlocked .toggle{background:#fcd34d}
-  a.link{color:#fff;text-decoration:none}
-  a.link:hover{text-decoration:underline}
+  .card.locked{opacity:.35; pointer-events:none; filter:saturate(.45)}
+
+  /* „Umschlag“ Kopf – reine Optik */
+  .envelope{
+    position:relative;
+    background:var(--body);
+    border-radius:10px;
+    height:140px;
+    overflow:hidden;
+    box-shadow:inset 0 0 0 2px rgba(0,0,0,.05);
+  }
+  /* flache Klappe als Dreieck oben */
+  .envelope::before{
+    content:"";
+    position:absolute; left:50%; top:0; transform:translateX(-50%);
+    width:0; height:0;
+    border-left:130px solid transparent;
+    border-right:130px solid transparent;
+    border-top:70px solid var(--flap);
+  }
+  /* Herz-Siegel (optisch, kein Button) */
+  .seal{
+    position:absolute; left:50%; top:56%;
+    width:28px; height:28px; transform:translate(-50%,-50%) rotate(45deg);
+    background:#fb18e3; box-shadow:0 1px 6px rgba(0,0,0,.2);
+    border-radius:4px;
+  }
+  .seal::before,.seal::after{
+    content:""; position:absolute; width:28px; height:28px; background:#fb18e3; border-radius:50%;
+  }
+  .seal::before{ top:-14px; left:0; }
+  .seal::after{  top:0; left:-14px; }
+
+  .title{
+    margin:0; font-size:16px; font-weight:800; color:#111;
+    display:flex; align-items:center; gap:8px;
+  }
+  .badge{
+    font-size:12px; font-weight:700; color:#111;
+    background:#fde68a; border:1px dashed var(--accent);
+    padding:2px 8px; border-radius:20px;
+  }
+
+  .content{
+    display:none; /* Phase 2: kein animiertes Auf/Zu – nur sichtbar/unsichtbar */
+    background:var(--paper); color:var(--text);
+    border-radius:10px; padding:12px; line-height:1.45; font-size:14px;
+    border:1px solid #e5e7eb;
+  }
+
+  .row{
+    display:flex; gap:8px; align-items:center; justify-content:space-between;
+  }
+  .toggle{
+    margin-left:auto;
+    padding:8px 10px;
+    border:0; border-radius:10px; font-weight:800; cursor:pointer;
+    background:var(--btn);
+  }
+  .toggle:hover{background:var(--btn-hover)}
 </style>
 </head>
 <body>
@@ -46,7 +107,7 @@
   <h1>📜 Briefe für dich</h1>
   <div class="meta" id="meta">–</div>
   <div class="actions">
-    <a href="game-banana.html" class="btn primary link">⬅️ Zurück zum Spiel</a>
+    <a href="game-banana.html" class="btn primary">⬅️ Zurück zum Spiel</a>
     <button id="reset" class="btn light">Score zurücksetzen</button>
   </div>
 </header>
@@ -56,17 +117,16 @@
 <script>
 (() => {
   // ============ Einstellungen ============
-  const TOTAL = 20; // <<<<< für Tests. Auf 50 ändern, wenn du willst.
+  const TOTAL = 20; // ← zum Testen; später gerne auf 50 erhöhen
   const MESSAGES = Array.from({length: TOTAL}, (_, i) =>
     `Brief #${i+1}: Hier steht deine persönliche Botschaft ❤️`
   );
-  // Du kannst MESSAGES auch manuell füllen (z.B. mit echten Texten).
 
   // Score lesen (session-basiert)
   const unlockedCount = parseInt(sessionStorage.getItem('bananaScore') || '0', 10);
+
   const grid = document.getElementById('grid');
   const meta = document.getElementById('meta');
-
   meta.textContent = `Freigeschaltet: ${Math.min(unlockedCount, MESSAGES.length)} / ${MESSAGES.length}`;
 
   // Karten bauen
@@ -74,30 +134,43 @@
     const card = document.createElement('div');
     card.className = 'card' + (idx < unlockedCount ? '' : ' locked');
 
-    const title = document.createElement('h3');
-    title.textContent = `Brief ${idx+1}`;
+    // Umschlag-Kopf
+    const envelope = document.createElement('div');
+    envelope.className = 'envelope';
+    const seal = document.createElement('div');
+    seal.className = 'seal';
+    envelope.appendChild(seal);
 
+    // Titel/Zeile
+    const row = document.createElement('div');
+    row.className = 'row';
+    const title = document.createElement('h3');
+    title.className = 'title';
+    title.innerHTML = `Brief ${idx+1} <span class="badge">${idx < unlockedCount ? 'freigeschaltet' : 'gesperrt'}</span>`;
+    const btn = document.createElement('button');
+    btn.className = 'toggle';
+    btn.textContent = (idx < unlockedCount) ? 'Öffnen' : 'Gesperrt';
+
+    // Inhalt
     const content = document.createElement('div');
     content.className = 'content';
     content.textContent = msg;
 
-    const btn = document.createElement('button');
-    btn.className = 'toggle';
-    btn.textContent = (idx < unlockedCount) ? 'Öffnen / Schließen' : 'Gesperrt';
-
+    // Interaktion (einfach: sichtbar / unsichtbar)
     if (idx < unlockedCount) {
-      // freigeschaltete Karte ist klickbar
       btn.addEventListener('click', () => {
-        // einfachen Toggle ohne Animation
-        const isOpen = card.classList.toggle('unlocked');
-        // optional Buttontext anpassen
-        btn.textContent = isOpen ? 'Schließen' : 'Öffnen';
+        const open = content.style.display !== 'block';
+        content.style.display = open ? 'block' : 'none';
+        btn.textContent = open ? 'Schließen' : 'Öffnen';
       });
     }
 
-    card.appendChild(title);
+    row.appendChild(title);
+    row.appendChild(btn);
+
+    card.appendChild(envelope);
+    card.appendChild(row);
     card.appendChild(content);
-    card.appendChild(btn);
     grid.appendChild(card);
   });
 
